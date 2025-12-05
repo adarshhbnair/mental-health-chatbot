@@ -5,3 +5,4 @@ scikit-learn
 pandas
 numpy
 spacy
+accelerate>=0.26.0
