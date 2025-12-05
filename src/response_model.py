@@ -1,38 +1,55 @@
+import os
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+
 import torch
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, Trainer, TrainingArguments
+from datasets import Dataset
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, TrainingArguments, Trainer
 import pandas as pd
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model_name = "google/flan-t5-xs"
+# Load dataset
+df = pd.read_csv("data/processed/response_pairs.csv")
+
+# Convert to HF dataset
+dataset = Dataset.from_pandas(df)
+
+# Model
+model_name = "t5-small"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+def preprocess(batch):
+    inputs = ["respond empathetically: " + p for p in batch["prompt"]]
+    targets = batch["response"]
+
+    model_inputs = tokenizer(inputs, truncation=True, padding="max_length", max_length=128)
+    labels = tokenizer(targets, truncation=True, padding="max_length", max_length=128).input_ids
+
+    model_inputs["labels"] = labels
+    return model_inputs
+
+dataset = dataset.map(preprocess, batched=True)
+
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(device)
 
-df = pd.read_csv("data/raw/empathetic_dialogues.csv")
-inputs = list(df["prompt"])
-labels = list(df["response"])
-
 args = TrainingArguments(
-    output_dir="models/response_gen",
-    per_device_train_batch_size=4,
-    num_train_epochs=1,
+    output_dir="models/response_model",
+    per_device_train_batch_size=8,
+    num_train_epochs=2,
+    logging_steps=50,
+    save_steps=500,
     fp16=True,
 )
 
-class Dataset(torch.utils.data.Dataset):
-    def __init__(self, inp, lab):
-        self.enc = tokenizer(inp, truncation=True, padding=True, return_tensors="pt")
-        self.tgt = tokenizer(lab, truncation=True, padding=True, return_tensors="pt")
+trainer = Trainer(
+    model=model,
+    args=args,
+    train_dataset=dataset,
+)
 
-    def __getitem__(self, idx):
-        return {
-            "input_ids": self.enc["input_ids"][idx],
-            "attention_mask": self.enc["attention_mask"][idx],
-            "labels": self.tgt["input_ids"][idx],
-        }
-
-    def __len__(self):
-        return len(inputs)
-
-trainer = Trainer(model=model, args=args, train_dataset=Dataset(inputs, labels))
 trainer.train()
+
+model.save_pretrained("models/response_model")
+tokenizer.save_pretrained("models/response_model")
+
+print("Training complete.")
