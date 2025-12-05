@@ -1,0 +1,100 @@
+# -----------------------------
+# Python
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Python cache
+*.cache
+*.log
+
+# -----------------------------
+# Data folders (raw + processed)
+# -----------------------------
+data/raw/
+data/processed/
+data/interim/
+data/external/
+
+# Keep folder structure but ignore data inside
+!data/.gitkeep
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/interim/.gitkeep
+!data/external/.gitkeep
+
+# -----------------------------
+# Models (HuggingFace + Checkpoints)
+# -----------------------------
+models/
+checkpoints/
+saved_models/
+output/
+runs/
+
+# HF cache
+~/.cache/huggingface/
+*.bin
+*.safetensors
+
+# -----------------------------
+# Training artifacts
+# -----------------------------
+*.pt
+*.ckpt
+*.pth
+*.npy
+*.npz
+
+# TensorBoard logs
+logs/
+wandb/
+wandb/*
+
+# -----------------------------
+# System files
+# -----------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -----------------------------
+# IDE / Editor files
+# -----------------------------
+.vscode/
+.idea/
+*.iml
+
+# -----------------------------
+# Environment / Config
+# -----------------------------
+.env
+*.env
+.env.*
+config.json
+secrets.json
+
+# -----------------------------
+# __temporary__
+# -----------------------------
+tmp/
+temp/
+*.tmp
+
+# -----------------------------
+# HuggingFace Hub symlink failures on Windows
+# -----------------------------
+*.lock
+*.partial
+*.incomplete
